@@ -1,0 +1,113 @@
+1) Table Theatre
+
+CREATE TABLE `movie_ticket_booking`.`theatre` (
+theatre_id int primary key,
+theatre_name varchar(30),
+location varchar(20),
+screens int,
+seats int
+);
+
+Sample Insert: 
+
+INSERT INTO `movie_ticket_booking`.`theatre`(`theatre_id`,`theatre_name`,`location`,`screens`,`seats`)
+VALUES(103,'CityPride','Bangalore',2,400);
+
+2) Table Movie
+
+CREATE TABLE `movie_ticket_booking`.`movie` (
+movie_id int primary key,
+movie_name varchar(30),
+director varchar(30),
+release_date date,
+movie_genre varchar(30)
+);
+
+Sample Insert: 
+
+INSERT INTO `movie_ticket_booking`.`movie`(`movie_id`,`movie_name`,`director`,`release_date`,`movie_genre`)
+VALUES(4,'Showman','Jackman','2018-04-19','Music');
+
+
+3) Table User
+
+CREATE TABLE `movie_ticket_booking`.`user` (
+user_id int primary key,
+user_name varchar(30),
+location varchar(30),
+contact_no numeric,
+email_id varchar(50)
+);
+
+Sample Insert:
+
+INSERT INTO `movie_ticket_booking`.`user`(`user_id`,`user_name`,`location`,`contact_no`,`email_id`)
+VALUES(1003,'Ankit','Bangalore',8821349089,'akh@gmail.com');
+
+
+4) Table Shows
+
+CREATE TABLE `movie_ticket_booking`.`shows` (
+show_id int primary key,
+show_time date,
+theatre_id int,
+movie_id int,
+foreign key (movie_id) references movie(movie_id),
+foreign key (theatre_id) references theatre(theatre_id)
+);
+
+Sample Insert:
+
+INSERT INTO `movie_ticket_booking`.`shows`(`show_id`,`show_time`,`theatre_id`,`movie_id`,`tickets`)
+VALUES(2004,'2019-07-30',103,1,15);
+
+
+5) Table Booking_Details
+
+CREATE TABLE `movie_ticket_booking`.`booking_details` (
+booking_id int primary key,
+show_id int,
+user_id int,
+tickets int,
+foreign key (user_id) references user(user_id),
+foreign key (show_id) references shows(show_id)
+);
+
+Sample Insert:
+
+INSERT INTO `movie_ticket_booking`.`booking_details`(`booking_id`,`show_id`,`user_id`,`tickets`)
+VALUES(10003,2002,1003,2);
+
+
+6) Procedure to Book Ticket
+
+delimiter $$
+create procedure Book_Ticket_New(in user_id int, in theatre_id_new int, in movie_id_new int,in tickets_new int)
+begin
+declare show_id_new int default 0;
+declare avail integer default 0;
+select show_id,count(*) as total_tickets from movie_ticket_booking.shows where theatre_id = theatre_id_new and movie_id = movie_id_new and tickets >= tickets_new into show_id_new,avail;
+if avail>0 then
+INSERT INTO `movie_ticket_booking`.`booking_details`(`show_id`,`user_id`,`tickets`)
+VALUES(show_id_new,user_id,tickets_new);
+update movie_ticket_booking.shows set tickets = tickets - tickets_new where show_id = show_id_new;
+end if;
+end $$
+delimiter ;
+
+Sample Procedure Call:
+
+call Book_Ticket_New(1002,102,3,4);
+
+7) Procedure to get the Booking details
+
+delimiter $$
+create procedure Get_Booking_Details(in user_id_new int,in show_id_new int,in booking_id_new int)
+begin
+select * from movie_ticket_booking.booking_details where user_id = user_id_new and show_id = show_id_new and booking_id = booking_id_new;
+end $$
+delimiter ;
+
+Sample Procedure Call:
+
+call Get_Booking_Details(1001,2001,10001);
